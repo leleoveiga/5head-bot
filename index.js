@@ -16,6 +16,14 @@ client.on("message", (msg) => {
 		const voiceChannel = msg.member.voice.channel;
 		const members = voiceChannel.members;
 
+		if (args[1] === "sai") {
+			for (let [key, guildMember] of members) {
+				if (!guildMember.user.bot) {
+					guildMember.voice.setMute(false);
+				}
+			}
+			voiceChannel.leave();
+		} else {
 			msg.reply("partiu dxar de ser vagabundo");
 			const workingTime = args[1] * 60000;
 			const restTime = args[2] * 60000;
