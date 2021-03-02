@@ -18,6 +18,8 @@ client.on("message", (msg) => {
 
 			msg.reply("partiu dxar de ser vagabundo");
 			const workingTime = args[1] * 60000;
+			const restTime = args[2] * 60000;
+			// const workingTime = args[1];
 			// const restTime = args[2];
 
 			voiceChannel.join().then((connection) => {
@@ -38,12 +40,14 @@ async function muteLoop(members, workingTime, restTime, rounds) {
 			}
 		}
 		await sleep(workingTime);
+		console.log("terminou o tempo");
 		for (let [key, guildMember] of members) {
 			if (!guildMember.user.bot) {
 				guildMember.voice.setMute(false);
 			}
 		}
 		await sleep(restTime);
+
 		// const dispatcher = connection.play('./startAudio.mp3');
 		// dispatcher.on("end", end => {
 		// 	voiceChannel.leave();
@@ -52,4 +56,7 @@ async function muteLoop(members, workingTime, restTime, rounds) {
 }
 
 function sleep(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 client.login(token);
