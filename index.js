@@ -16,6 +16,12 @@ client.on("message", (msg) => {
 		const voiceChannel = msg.member.voice.channel;
 		const members = voiceChannel.members;
 
+		if (args[1] === "ajuda") {
+			client.reply(
+				"só escrever: pomodoro x y z\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds"
+			);
+		}
+
 		if (args[1] === "sai") {
 			for (let [key, guildMember] of members) {
 				if (!guildMember.user.bot) {
