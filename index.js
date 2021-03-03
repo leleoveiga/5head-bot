@@ -49,6 +49,7 @@ function pomodoro(args, msg) {
 		);
 		voiceChannel.join().then(async (connection) => {
 			await muteLoop(connection, members, workTime, restTime, rounds, args[1]);
+			voiceChannel.leave();
 		});
 	} else {
 		msg.reply(
