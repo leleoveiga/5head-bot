@@ -66,31 +66,19 @@ async function muteLoop(
 				guildMember.voice.setMute(true);
 			}
 		}
-		await playAudio(connection, ytLink);
 		await sleep(workingTime);
+		await connection.play(await ytdl(ytLink), { type: "opus" });
 		console.log("terminou o tempo");
 		for (let [key, guildMember] of members) {
 			if (!guildMember.user.bot) {
 				guildMember.voice.setMute(false);
 			}
 		}
-		playAudio(connection, ytLink);
+		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(restTime);
 
 		// const dispatcher = connection.play('./startAudio.mp3');
 		// dispatcher.on("end", end => {
-		// 	voiceChannel.leave();
-		// });
-	}
-}
-
-async function playAudio(connection, url) {
-	if (url) {
-		connection.play(await ytdl(url), { type: "opus" });
-	} else {
-		connection.play(await ytdl("https://www.youtube.com/watch?v=dxi61ckiSnU"), {
-			type: "opus",
-		});
 	}
 }
 
