@@ -39,9 +39,18 @@ function pomodoro(args, msg) {
 			}
 		}
 		voiceChannel.leave();
-	}
-
-	if (parseInt(args[1]) > 0 && parseInt(args[2]) > 0 && parseInt(args[3]) > 0) {
+	} else if (ytdl.validateURL(args[1])) {
+		msg.reply(
+			`partiu dxar de ser vagabundo. \n${
+				workTime / 60000
+			} minutos trabalhando\n${
+				restTime / 60000
+			} minutos descansando\n${rounds} rounds`
+		);
+		voiceChannel.join().then(async (connection) => {
+			await muteLoop(connection, members, workTime, restTime, rounds, args[1]);
+		});
+	} else {
 		msg.reply(
 			`partiu dxar de ser vagabundo. \n${
 				workTime / 60000
@@ -51,6 +60,7 @@ function pomodoro(args, msg) {
 		);
 		voiceChannel.join().then(async (connection) => {
 			await muteLoop(connection, members, workTime, restTime, rounds, ytLink);
+			voiceChannel.leave();
 		});
 	}
 }
