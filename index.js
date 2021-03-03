@@ -88,6 +88,8 @@ async function playAudio(connection, url) {
 	if (url) {
 		connection.play(await ytdl(url), { type: "opus" });
 	} else {
+		connection.play(await ytdl("https://www.youtube.com/watch?v=dxi61ckiSnU"), {
+			type: "opus",
 		});
 	}
 }
