@@ -1,4 +1,5 @@
 const discord = require("discord.js");
+const ytdl = require("ytdl-core-discord");
 require("dotenv/config");
 const client = new discord.Client();
 
@@ -35,6 +36,7 @@ function pomodoro(args, msg) {
 		}
 		voiceChannel.leave();
 	}
+
 	if (parseInt(args[1]) > 0 && parseInt(args[2]) > 0 && parseInt(args[3]) > 0) {
 		msg.reply(
 			`partiu dxar de ser vagabundo. \n${args[1]} minutos trabalhando\n${args[2]} minutos descansando\n${args[3]} rounds`
@@ -42,21 +44,29 @@ function pomodoro(args, msg) {
 		const workingTime = args[1] * 60000;
 		const restTime = args[2] * 60000;
 		const rounds = args[3];
+		const ytLink = args[4];
 		voiceChannel.join().then((connection) => {
-			muteLoop(members, workingTime, restTime, rounds);
+			muteLoop(connection, members, workingTime, restTime, rounds, ytLink);
 		});
 	}
 }
 
-async function muteLoop(members, workingTime, restTime, rounds) {
+async function muteLoop(
+	connection,
+	members,
+	workingTime,
+	restTime,
+	rounds,
+	ytLink
+) {
 	for (let i = 0; i < rounds; i++) {
-		// const dispatcher = connection.play('./startAudio.mp3');
 		console.log("começou o tempo");
 		for (let [key, guildMember] of members) {
 			if (!guildMember.user.bot) {
 				guildMember.voice.setMute(true);
 			}
 		}
+		await playAudio(connection, ytLink);
 		await sleep(workingTime);
 		console.log("terminou o tempo");
 		for (let [key, guildMember] of members) {
@@ -64,12 +74,21 @@ async function muteLoop(members, workingTime, restTime, rounds) {
 				guildMember.voice.setMute(false);
 			}
 		}
+		playAudio(connection, ytLink);
 		await sleep(restTime);
 
 		// const dispatcher = connection.play('./startAudio.mp3');
 		// dispatcher.on("end", end => {
 		// 	voiceChannel.leave();
 		// });
+	}
+}
+
+async function playAudio(connection, url) {
+	if (url) {
+		connection.play(await ytdl(url), { type: "opus" });
+	} else {
+		});
 	}
 }
 
