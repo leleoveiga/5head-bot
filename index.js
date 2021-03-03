@@ -22,13 +22,17 @@ function pomodoro(args, msg) {
 	const voiceChannel = msg.member.voice.channel;
 	const members = voiceChannel.members;
 
+	const workTime = args[1] * 60000 || 1500000; // 25 minutes
+	const restTime = args[2] * 60000 || 300000; // 5 minutes
+	const rounds = args[3] || 4;
+	const ytLink = args[4] || "https://www.youtube.com/watch?v=dxi61ckiSnU";
+
 	if (args[1] === "ajuda") {
 		client.reply(
 			"só escrever: pomodoro x y z\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds"
 		);
-	}
-
-	if (args[1] === "sai") {
+	} else if (args[1] === "sai") {
+		console.log("deve ter saído");
 		for (let [key, guildMember] of members) {
 			if (!guildMember.user.bot) {
 				guildMember.voice.setMute(false);
@@ -39,14 +43,14 @@ function pomodoro(args, msg) {
 
 	if (parseInt(args[1]) > 0 && parseInt(args[2]) > 0 && parseInt(args[3]) > 0) {
 		msg.reply(
-			`partiu dxar de ser vagabundo. \n${args[1]} minutos trabalhando\n${args[2]} minutos descansando\n${args[3]} rounds`
+			`partiu dxar de ser vagabundo. \n${
+				workTime / 60000
+			} minutos trabalhando\n${
+				restTime / 60000
+			} minutos descansando\n${rounds} rounds`
 		);
-		const workingTime = args[1] * 60000;
-		const restTime = args[2] * 60000;
-		const rounds = args[3];
-		const ytLink = args[4];
-		voiceChannel.join().then((connection) => {
-			muteLoop(connection, members, workingTime, restTime, rounds, ytLink);
+		voiceChannel.join().then(async (connection) => {
+			await muteLoop(connection, members, workTime, restTime, rounds, ytLink);
 		});
 	}
 }
@@ -54,7 +58,7 @@ function pomodoro(args, msg) {
 async function muteLoop(
 	connection,
 	members,
-	workingTime,
+	workTime,
 	restTime,
 	rounds,
 	ytLink
@@ -66,8 +70,8 @@ async function muteLoop(
 				guildMember.voice.setMute(true);
 			}
 		}
-		await sleep(workingTime);
 		await connection.play(await ytdl(ytLink), { type: "opus" });
+		await sleep(workTime);
 		console.log("terminou o tempo");
 		for (let [key, guildMember] of members) {
 			if (!guildMember.user.bot) {
