@@ -15,9 +15,36 @@ client.on("message", (msg) => {
 		// const args = msg.content.substring(PREFIX.length).split(" ");
 		pomodoro(args, msg);
 	}
+	if (args[0] === "wimhof") {
+		console.log(working);
+		console.log("wimhof");
+		wimhof(msg);
+	}
 });
 
-function pomodoro(args, msg) {
+async function wimhof(msg) {
+	if (!working) {
+		msg.channel.send("hora de transcender");
+		const voiceChannel = msg.member.voice.channel;
+		await voiceChannel.join().then(async (connection) => {
+			console.log("vaidaroplay");
+			working = true;
+
+			const dispatcher = connection.play(
+				await ytdl("https://www.youtube.com/watch?v=2ZIpFytCSVc"),
+				{
+					type: "opus",
+				}
+			);
+
+			const totalStreamTime = dispatcher.totalStreamTime;
+			sleep(totalStreamTime);
+			working = false;
+		});
+	}
+}
+
+async function pomodoro(args, msg) {
 	console.log(args);
 	const voiceChannel = msg.member.voice.channel;
 	const members = voiceChannel.members;
