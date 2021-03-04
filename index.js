@@ -5,6 +5,8 @@ const client = new discord.Client();
 
 const token = process.env.TOKEN;
 
+let working = null;
+
 client.on("ready", () => {
 	console.log(`bot ta rodando como ${client.user.tag}`);
 });
@@ -12,7 +14,8 @@ client.on("ready", () => {
 client.on("message", (msg) => {
 	const args = msg.content.split(" ");
 	if (args[0] === "pomodoro") {
-		// const args = msg.content.substring(PREFIX.length).split(" ");
+		console.log(working);
+		console.log("pomodoro");
 		pomodoro(args, msg);
 	}
 	if (args[0] === "wimhof") {
@@ -54,42 +57,58 @@ async function pomodoro(args, msg) {
 	const rounds = args[3] || 4;
 	const ytLink = args[4] || "https://www.youtube.com/watch?v=dxi61ckiSnU";
 
-	if (args[1] === "ajuda") {
-		client.reply(
-			"só escrever: pomodoro x y z\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds"
-		);
-	} else if (args[1] === "sai") {
+	if (args[1] === "sai") {
 		console.log("deve ter saído");
-		for (let [key, guildMember] of members) {
+
+		for (let guildMember of members.values()) {
 			if (!guildMember.user.bot) {
 				guildMember.voice.setMute(false);
 			}
 		}
 		voiceChannel.leave();
-	} else if (ytdl.validateURL(args[1])) {
+		// bot continua no muteLoop msm dps de sair. consertar dps
+	} else if (args[1] === "ajuda") {
 		msg.reply(
-			`partiu dxar de ser vagabundo. \n${
-				workTime / 60000
-			} minutos trabalhando\n${
-				restTime / 60000
-			} minutos descansando\n${rounds} rounds`
+			"só escrever: pomodoro x y z linkProAudio\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
+				"\n ou vc pode só passar os x y z" +
+				"\n ou vc pode só passar o linkProAudio" +
+				"\n ou vc pode só escrever pomodoro"
 		);
-		voiceChannel.join().then(async (connection) => {
-			await muteLoop(connection, members, workTime, restTime, rounds, args[1]);
-			voiceChannel.leave();
-		});
-	} else {
-		msg.reply(
-			`partiu dxar de ser vagabundo. \n${
-				workTime / 60000
-			} minutos trabalhando\n${
-				restTime / 60000
-			} minutos descansando\n${rounds} rounds`
-		);
-		voiceChannel.join().then(async (connection) => {
-			await muteLoop(connection, members, workTime, restTime, rounds, ytLink);
-			voiceChannel.leave();
-		});
+	} else if (!working) {
+		if (ytdl.validateURL(args[1])) {
+			msg.reply(
+				`partiu dxar de ser vagabundo. \n${
+					workTime / 60000
+				} minutos trabalhando\n${
+					restTime / 60000
+				} minutos descansando\n${rounds} rounds`
+			);
+
+			await voiceChannel.join().then(async (connection) => {
+				await muteLoop(
+					connection,
+					members,
+					workTime,
+					restTime,
+					rounds,
+					args[1]
+				);
+				voiceChannel.leave();
+			});
+		} else {
+			msg.reply(
+				`partiu dxar de ser vagabundo. \n${
+					workTime / 60000
+				} minutos trabalhando\n${
+					restTime / 60000
+				} minutos descansando\n${rounds} rounds`
+			);
+
+			await voiceChannel.join().then(async (connection) => {
+				await muteLoop(connection, members, workTime, restTime, rounds, ytLink);
+				voiceChannel.leave();
+			});
+		}
 	}
 }
 
@@ -101,6 +120,7 @@ async function muteLoop(
 	rounds,
 	ytLink
 ) {
+	working = true;
 	for (let i = 0; i < rounds; i++) {
 		console.log("começou o tempo");
 		// for (let guildMember of members.values()) {
