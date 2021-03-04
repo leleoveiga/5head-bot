@@ -76,19 +76,22 @@ async function muteLoop(
 ) {
 	for (let i = 0; i < rounds; i++) {
 		console.log("começou o tempo");
-		for (let [key, guildMember] of members) {
-			if (!guildMember.user.bot) {
-				guildMember.voice.setMute(true);
-			}
-		}
+		// for (let guildMember of members.values()) {
+		// 	if (!guildMember.user.bot) {
+		// 		guildMember.voice.setMute(true);
+		// 	}
+		// }
+
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(workTime);
+
 		console.log("terminou o tempo");
-		for (let [key, guildMember] of members) {
-			if (!guildMember.user.bot) {
-				guildMember.voice.setMute(false);
-			}
-		}
+		// for (let guildMember of members.values()) {
+		// 	if (!guildMember.user.bot) {
+		// 		guildMember.voice.setMute(false);
+		// 	}
+		// }
+
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(restTime);
 
