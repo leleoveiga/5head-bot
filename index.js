@@ -65,6 +65,8 @@ async function pomodoro(args, msg) {
 				guildMember.voice.setMute(false);
 			}
 		}
+
+		working = false;
 		voiceChannel.leave();
 		// bot continua no muteLoop msm dps de sair. consertar dps
 	} else if (args[1] === "ajuda") {
@@ -141,10 +143,8 @@ async function muteLoop(
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(restTime);
-
-		// const dispatcher = connection.play('./startAudio.mp3');
-		// dispatcher.on("end", end => {
 	}
+	working = false;
 }
 
 function sleep(ms) {
