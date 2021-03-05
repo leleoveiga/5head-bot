@@ -5,13 +5,12 @@ const client = new discord.Client();
 
 const token = process.env.TOKEN;
 
-let working = null;
-
 client.on("ready", () => {
 	console.log(`bot ta rodando como ${client.user.tag}`);
 });
 
 client.on("message", (msg) => {
+	let working = null;
 	const args = msg.content.split(" ");
 	if (args[0] === "pomodoro") {
 		console.log(working);
@@ -34,7 +33,7 @@ async function wimhof(msg) {
 			working = true;
 
 			const dispatcher = connection.play(
-				await ytdl("https://www.youtube.com/watch?v=2ZIpFytCSVc"),
+				await ytdl("https://www.youtube.com/watch?v=tybOi4hjZFQ&t"),
 				{
 					type: "opus",
 				}
@@ -44,6 +43,8 @@ async function wimhof(msg) {
 			sleep(totalStreamTime);
 			working = false;
 		});
+	} else {
+		console.log("ta trabalhando já...");
 	}
 }
 
@@ -65,7 +66,6 @@ async function pomodoro(args, msg) {
 				guildMember.voice.setMute(false);
 			}
 		}
-
 		working = false;
 		voiceChannel.leave();
 		// bot continua no muteLoop msm dps de sair. consertar dps
