@@ -78,13 +78,7 @@ async function pomodoro(args, msg) {
 		);
 	} else if (!working) {
 		if (ytdl.validateURL(args[1])) {
-			msg.reply(
-				`partiu dxar de ser vagabundo. \n${
-					workTime / 60000
-				} minutos trabalhando\n${
-					restTime / 60000
-				} minutos descansando\n${rounds} rounds`
-			);
+			pomodoroMsg(msg, workTime, restTime, rounds);
 
 			await voiceChannel.join().then(async (connection) => {
 				await muteLoop(
@@ -98,13 +92,7 @@ async function pomodoro(args, msg) {
 				voiceChannel.leave();
 			});
 		} else {
-			msg.reply(
-				`partiu dxar de ser vagabundo. \n${
-					workTime / 60000
-				} minutos trabalhando\n${
-					restTime / 60000
-				} minutos descansando\n${rounds} rounds`
-			);
+			pomodoroMsg(msg, workTime, restTime, rounds);
 
 			await voiceChannel.join().then(async (connection) => {
 				await muteLoop(connection, members, workTime, restTime, rounds, ytLink);
@@ -112,6 +100,14 @@ async function pomodoro(args, msg) {
 			});
 		}
 	}
+}
+
+function pomodoroMsg(msg, workTime, restTime, rounds) {
+	msg.reply(
+		`partiu dxar de ser vagabundo. \n${workTime / 60000} minutos trabalhando\n${
+			restTime / 60000
+		} minutos descansando\n${rounds} rounds`
+	);
 }
 
 async function muteLoop(
