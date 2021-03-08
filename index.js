@@ -6,8 +6,23 @@ const client = new discord.Client();
 const token = process.env.TOKEN;
 
 const serversWorkers = [];
+
+function addGuildsToList() {
+	const guilds = client.guilds.cache.values();
+	for (let guild of guilds) {
+		serversWorkers.push({
+			guildId: guild.id,
+			guildName: guild.name,
+			working: false,
+		});
+	}
+	console.log(serversWorkers);
+}
+
 client.on("ready", () => {
 	console.log(`bot ta rodando como ${client.user.tag}`);
+	addGuildsToList();
+});
 
 client.on("guildCreate", (guild) => {
 	console.log(`bot entrou no: ${guild.name}`);
