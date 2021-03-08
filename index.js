@@ -5,22 +5,33 @@ const client = new discord.Client();
 
 const token = process.env.TOKEN;
 
+const serversWorkers = [];
 client.on("ready", () => {
 	console.log(`bot ta rodando como ${client.user.tag}`);
+
+client.on("guildCreate", (guild) => {
+	console.log(`bot entrou no: ${guild.name}`);
+	serversWorkers.push({ guildId: guild.id, working: false });
+	console.log(serversWorkers);
 });
 
 client.on("message", (msg) => {
-	let working = null;
-	const args = msg.content.split(" ");
-	if (args[0] === "pomodoro") {
-		console.log(working);
-		console.log("pomodoro");
-		pomodoro(args, msg);
-	}
-	if (args[0] === "wimhof") {
-		console.log(working);
-		console.log("wimhof");
-		wimhof(msg);
+	const guildId = msg.guild.id;
+	const guild = serversWorkers.find(
+		(guild) => guild.guildId === guildId && guild.working === false
+	);
+	if (guild) {
+		const args = msg.content.split(" ");
+		if (args[0] === "pomodoro") {
+			console.log(working);
+			console.log("pomodoro");
+			pomodoro(args, msg);
+		}
+		if (args[0] === "wimhof") {
+			console.log(working);
+			console.log("wimhof");
+			wimhof(msg);
+		}
 	}
 });
 
