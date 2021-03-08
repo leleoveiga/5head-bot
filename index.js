@@ -76,9 +76,7 @@ async function wimhof(guildId, msg) {
 		});
 		switchGuildWorkingState(guildId);
 	} else {
-		msg.channel.send(
-			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
-		);
+		pomodoroMsg(msg);
 	}
 }
 
@@ -94,11 +92,6 @@ async function pomodoro(guildId, args, msg) {
 
 	if (args[1] === "sai") {
 		console.log("deve ter saído");
-		// for (let guildMember of members.values()) {
-		// 	if (!guildMember.user.bot) {
-		// 		guildMember.voice.setMute(false);
-		// 	}
-		// }
 		voiceChannel.leave(); // bot continua no muteLoop msm dps de sair. consertar dps
 		switchGuildWorkingState(guildId, false);
 	} else if (args[1] === "ajuda") {
@@ -145,18 +138,24 @@ async function pomodoro(guildId, args, msg) {
 			});
 		}
 	} else {
-		msg.channel.send(
-			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
-		);
+		pomodoroMsg(msg);
 	}
 }
 
 function pomodoroMsg(msg, workTime, restTime, rounds) {
-	msg.reply(
-		`partiu dxar de ser vagabundo. \n${workTime / 60000} minutos trabalhando\n${
-			restTime / 60000
-		} minutos descansando\n${rounds} rounds`
-	);
+	if (!workTime) {
+		msg.channel.send(
+			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
+		);
+	} else {
+		msg.reply(
+			`partiu dxar de ser vagabundo. \n${
+				workTime / 60000
+			} minutos trabalhando\n${
+				restTime / 60000
+			} minutos descansando\n${rounds} rounds`
+		);
+	}
 }
 
 async function muteLoop(
@@ -174,21 +173,11 @@ async function muteLoop(
 			break;
 		}
 		console.log("começou o tempo");
-		// for (let guildMember of members.values()) {
-		// 	if (!guildMember.user.bot) {
-		// 		guildMember.voice.setMute(true);
-		// 	}
-		// }
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(workTime);
 
 		console.log("terminou o tempo");
-		// for (let guildMember of members.values()) {
-		// 	if (!guildMember.user.bot) {
-		// 		guildMember.voice.setMute(false);
-		// 	}
-		// }
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(restTime);
@@ -200,3 +189,10 @@ function sleep(ms) {
 }
 
 client.login(token);
+
+// funcões possivelmente úteis dps
+// for (let guildMember of members.values()) {
+// 	if (!guildMember.user.bot) {
+// 		guildMember.voice.setMute(false);
+// 	}
+// }
