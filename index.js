@@ -26,37 +26,43 @@ client.on("ready", () => {
 
 client.on("guildCreate", (guild) => {
 	console.log(`bot entrou no: ${guild.name}`);
-	serversWorkers.push({ guildId: guild.id, working: false });
+	serversWorkers.push({
+		guildId: guild.id,
+		guildName: guild.name,
+		working: false,
+	});
 	console.log(serversWorkers);
 });
 
+function isWorking(guildId) {
+	return serversWorkers.find((guild) => guild.guildId === guildId).working;
+}
+
+function switchGuildWorkingState(guildId, state) {
+	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
+	guild.working = state || !guild.working;
+}
+
 client.on("message", (msg) => {
 	const guildId = msg.guild.id;
-	const guild = serversWorkers.find(
-		(guild) => guild.guildId === guildId && guild.working === false
-	);
-	if (guild) {
-		const args = msg.content.split(" ");
-		if (args[0] === "pomodoro") {
-			console.log(working);
-			console.log("pomodoro");
-			pomodoro(args, msg);
-		}
-		if (args[0] === "wimhof") {
-			console.log(working);
-			console.log("wimhof");
-			wimhof(msg);
-		}
+	const args = msg.content.split(" ");
+	if (args[0] === "pomodoro") {
+		console.log("pomodoro");
+		pomodoro(guildId, args, msg);
+	}
+	if (args[0] === "wimhof") {
+		console.log("wimhof");
+		wimhof(guildId, msg);
 	}
 });
 
-async function wimhof(msg) {
-	if (!working) {
+async function wimhof(guildId, msg) {
+	if (!isWorking(guildId)) {
+		switchGuildWorkingState(guildId);
 		msg.channel.send("hora de transcender");
 		const voiceChannel = msg.member.voice.channel;
 		await voiceChannel.join().then(async (connection) => {
 			console.log("vaidaroplay");
-			working = true;
 
 			const dispatcher = connection.play(
 				await ytdl("https://www.youtube.com/watch?v=tybOi4hjZFQ&t"),
@@ -67,14 +73,16 @@ async function wimhof(msg) {
 
 			const totalStreamTime = dispatcher.totalStreamTime;
 			sleep(totalStreamTime);
-			working = false;
 		});
+		switchGuildWorkingState(guildId);
 	} else {
-		console.log("ta trabalhando já...");
+		msg.channel.send(
+			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
+		);
 	}
 }
 
-async function pomodoro(args, msg) {
+async function pomodoro(guildId, args, msg) {
 	console.log(args);
 	const voiceChannel = msg.member.voice.channel;
 	const members = voiceChannel.members;
@@ -86,15 +94,13 @@ async function pomodoro(args, msg) {
 
 	if (args[1] === "sai") {
 		console.log("deve ter saído");
-
-		for (let guildMember of members.values()) {
-			if (!guildMember.user.bot) {
-				guildMember.voice.setMute(false);
-			}
-		}
-		working = false;
-		voiceChannel.leave();
-		// bot continua no muteLoop msm dps de sair. consertar dps
+		// for (let guildMember of members.values()) {
+		// 	if (!guildMember.user.bot) {
+		// 		guildMember.voice.setMute(false);
+		// 	}
+		// }
+		voiceChannel.leave(); // bot continua no muteLoop msm dps de sair. consertar dps
+		switchGuildWorkingState(guildId, false);
 	} else if (args[1] === "ajuda") {
 		msg.reply(
 			"só escrever: pomodoro x y z linkProAudio\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
@@ -102,12 +108,14 @@ async function pomodoro(args, msg) {
 				"\n ou vc pode só passar o linkProAudio" +
 				"\n ou vc pode só escrever pomodoro"
 		);
-	} else if (!working) {
+	} else if (!isWorking(guildId)) {
 		if (ytdl.validateURL(args[1])) {
 			pomodoroMsg(msg, workTime, restTime, rounds);
 
 			await voiceChannel.join().then(async (connection) => {
+				switchGuildWorkingState(guildId);
 				await muteLoop(
+					guildId,
 					connection,
 					members,
 					workTime,
@@ -116,15 +124,30 @@ async function pomodoro(args, msg) {
 					args[1]
 				);
 				voiceChannel.leave();
+				switchGuildWorkingState(guildId);
 			});
 		} else {
 			pomodoroMsg(msg, workTime, restTime, rounds);
 
 			await voiceChannel.join().then(async (connection) => {
-				await muteLoop(connection, members, workTime, restTime, rounds, ytLink);
+				switchGuildWorkingState(guildId);
+				await muteLoop(
+					guildId,
+					connection,
+					members,
+					workTime,
+					restTime,
+					rounds,
+					ytLink
+				);
 				voiceChannel.leave();
+				switchGuildWorkingState(guildId);
 			});
 		}
+	} else {
+		msg.channel.send(
+			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
+		);
 	}
 }
 
@@ -137,6 +160,7 @@ function pomodoroMsg(msg, workTime, restTime, rounds) {
 }
 
 async function muteLoop(
+	guildId,
 	connection,
 	members,
 	workTime,
@@ -144,8 +168,11 @@ async function muteLoop(
 	rounds,
 	ytLink
 ) {
-	working = true;
 	for (let i = 0; i < rounds; i++) {
+		// so pra n ficar rodando caso n esteja trabalhando
+		if (!isWorking(guildId)) {
+			break;
+		}
 		console.log("começou o tempo");
 		// for (let guildMember of members.values()) {
 		// 	if (!guildMember.user.bot) {
@@ -166,7 +193,6 @@ async function muteLoop(
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(restTime);
 	}
-	working = false;
 }
 
 function sleep(ms) {
