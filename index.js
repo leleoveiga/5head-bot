@@ -176,7 +176,15 @@ async function muteLoop(
 		console.log("terminou o tempo");
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
-		await sleep(restTime);
+		if (i !== rounds - 1) await sleep(restTime);
+		else {
+			//caso seja o último round, ele só descansa a duração do áudio
+			const seconds = await videoLength(ytLink);
+			await sleep(seconds * 1000);
+		}
+	}
+}
+
 async function videoLength(ytLink) {
 	await ytdl.getInfo(ytLink, (info) => {
 		return info.length_seconds;
