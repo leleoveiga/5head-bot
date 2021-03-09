@@ -60,19 +60,15 @@ async function wimhof(guildId, msg) {
 	if (!isWorking(guildId)) {
 		switchGuildWorkingState(guildId);
 		msg.channel.send("hora de transcender");
+		const ytLink = "https://www.youtube.com/watch?v=tybOi4hjZFQ&t";
 		const voiceChannel = msg.member.voice.channel;
 		await voiceChannel.join().then(async (connection) => {
-			console.log("vaidaroplay");
+			connection.play(await ytdl(ytLink), {
+				type: "opus",
+			});
 
-			const dispatcher = connection.play(
-				await ytdl("https://www.youtube.com/watch?v=tybOi4hjZFQ&t"),
-				{
-					type: "opus",
-				}
-			);
-
-			const totalStreamTime = dispatcher.totalStreamTime;
-			sleep(totalStreamTime);
+			const seconds = await videoLength(ytLink);
+			await sleep(seconds * 1000);
 		});
 		switchGuildWorkingState(guildId);
 	} else {
