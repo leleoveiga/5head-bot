@@ -88,7 +88,7 @@ async function pomodoro(guildId, args, msg) {
 
 	if (args[1] === "sai") {
 		console.log("deve ter saído");
-		voiceChannel.leave(); // bot continua no muteLoop msm dps de sair. consertar dps
+		voiceChannel.leave(); // bot continua no pomodoroLoop msm dps de sair. consertar dps
 		switchGuildWorkingState(guildId, false);
 	} else if (args[1] === "ajuda") {
 		msg.reply(
@@ -103,10 +103,10 @@ async function pomodoro(guildId, args, msg) {
 
 			await voiceChannel.join().then(async (connection) => {
 				switchGuildWorkingState(guildId);
-				await muteLoop(
+				await pomodoroLoop(
 					guildId,
 					connection,
-					members,
+					msg.channel,
 					workTime,
 					restTime,
 					rounds,
@@ -118,12 +118,12 @@ async function pomodoro(guildId, args, msg) {
 		} else {
 			pomodoroMsg(msg, workTime, restTime, rounds);
 
-			await voiceChannel.join().then(async (connection) => {
+			voiceChannel.join().then(async (connection) => {
 				switchGuildWorkingState(guildId);
-				await muteLoop(
+				await pomodoroLoop(
 					guildId,
 					connection,
-					members,
+					msg.channel,
 					workTime,
 					restTime,
 					rounds,
@@ -138,26 +138,10 @@ async function pomodoro(guildId, args, msg) {
 	}
 }
 
-function pomodoroMsg(msg, workTime, restTime, rounds) {
-	if (!workTime) {
-		msg.channel.send(
-			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
-		);
-	} else {
-		msg.reply(
-			`partiu dxar de ser vagabundo. \n${
-				workTime / 60000
-			} minutos trabalhando\n${
-				restTime / 60000
-			} minutos descansando\n${rounds} rounds`
-		);
-	}
-}
-
-async function muteLoop(
+async function pomodoroLoop(
 	guildId,
 	connection,
-	members,
+	channel,
 	workTime,
 	restTime,
 	rounds,
@@ -165,15 +149,15 @@ async function muteLoop(
 ) {
 	for (let i = 0; i < rounds; i++) {
 		// so pra n ficar rodando caso n esteja trabalhando
-		if (!isWorking(guildId)) {
-			break;
-		}
-		console.log("começou o tempo");
+		if (!isWorking(guildId)) break;
+		if (i !== 0) channel.send("começou o trabalho");
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(workTime);
 
-		console.log("terminou o tempo");
+		if (i !== rounds - 1)
+			channel.send(`começou o descanso\nainda faltam ${rounds - i - 1} rounds`);
+		else channel.send(`sessão do pomodoro cabou`);
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		if (i !== rounds - 1) await sleep(restTime);
