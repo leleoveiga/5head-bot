@@ -58,7 +58,7 @@ client.on("message", (msg) => {
 
 async function wimhof(guildId, msg) {
 	if (!isWorking(guildId)) {
-		switchGuildWorkingState(guildId);
+		switchGuildWorkingState(guildId, true);
 		msg.channel.send("hora de transcender");
 		const ytLink = "https://www.youtube.com/watch?v=tybOi4hjZFQ&t";
 		const voiceChannel = msg.member.voice.channel;
@@ -70,7 +70,7 @@ async function wimhof(guildId, msg) {
 			const seconds = await videoLength(ytLink);
 			await sleep(seconds * 1000);
 		});
-		switchGuildWorkingState(guildId);
+		switchGuildWorkingState(guildId, false);
 	} else {
 		pomodoroMsg(msg);
 	}
@@ -102,7 +102,7 @@ async function pomodoro(guildId, args, msg) {
 			pomodoroMsg(msg, workTime, restTime, rounds);
 
 			await voiceChannel.join().then(async (connection) => {
-				switchGuildWorkingState(guildId);
+				switchGuildWorkingState(guildId, true);
 				await pomodoroLoop(
 					guildId,
 					connection,
@@ -113,13 +113,13 @@ async function pomodoro(guildId, args, msg) {
 					args[1]
 				);
 				voiceChannel.leave();
-				switchGuildWorkingState(guildId);
+				switchGuildWorkingState(guildId, false);
 			});
 		} else {
 			pomodoroMsg(msg, workTime, restTime, rounds);
 
 			voiceChannel.join().then(async (connection) => {
-				switchGuildWorkingState(guildId);
+				switchGuildWorkingState(guildId, true);
 				await pomodoroLoop(
 					guildId,
 					connection,
@@ -130,7 +130,7 @@ async function pomodoro(guildId, args, msg) {
 					ytLink
 				);
 				voiceChannel.leave();
-				switchGuildWorkingState(guildId);
+				switchGuildWorkingState(guildId, false);
 			});
 		}
 	} else {
