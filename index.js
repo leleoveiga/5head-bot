@@ -177,6 +177,25 @@ async function muteLoop(
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(restTime);
+async function videoLength(ytLink) {
+	await ytdl.getInfo(ytLink, (info) => {
+		return info.length_seconds;
+	});
+}
+
+function pomodoroMsg(msg, workTime, restTime, rounds) {
+	if (!workTime) {
+		msg.channel.send(
+			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
+		);
+	} else {
+		msg.reply(
+			`partiu dxar de ser vagabundo. \n${
+				workTime / 60000
+			} minutos trabalhando\n${
+				restTime / 60000
+			} minutos descansando\n${rounds} rounds`
+		);
 	}
 }
 
