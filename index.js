@@ -164,7 +164,7 @@ async function pomodoroLoop(
 		else {
 			//caso seja o último round, ele só descansa a duração do áudio
 			const seconds = await videoLength(ytLink);
-			await sleep(seconds * 1000);
+			await sleep(seconds * 2000);
 		}
 	}
 }
