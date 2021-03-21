@@ -13,7 +13,7 @@ function addGuildsToList() {
 		serversWorkers.push({
 			guildId: guild.id,
 			guildName: guild.name,
-			working: false,
+			workingStateList: [],
 		});
 	}
 	console.log(serversWorkers);
@@ -29,18 +29,32 @@ client.on("guildCreate", (guild) => {
 	serversWorkers.push({
 		guildId: guild.id,
 		guildName: guild.name,
-		working: false,
+		workingStateList: [],
 	});
 	console.log(serversWorkers);
 });
 
-function isWorking(guildId) {
-	return serversWorkers.find((guild) => guild.guildId === guildId).working;
+function isWorking(guildId, workingIndex) {
+	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
+	workingIndex = workingIndex || guild.workingStateList.length - 1;
+
+	console.log(guild, `o estado da posição ${workingIndex} foi consultado`);
+	return guild.workingStateList[workingIndex];
 }
 
-function switchGuildWorkingState(guildId, state) {
+function switchGuildWorkingState(guildId, state, workingIndex) {
 	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
-	guild.working = state || !guild.working;
+	workingIndex = workingIndex || guild.workingStateList.length - 1;
+	guild.workingStateList[workingIndex] = state;
+
+	console.log(guild, `mudou o estado na posição ${workingIndex}`);
+}
+
+function addGuildWorkingState(guildId, state) {
+	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
+
+	console.log(guild, `foi adicionado um estado de trabalho nessa guild`);
+	return guild.workingStateList.push(state);
 }
 
 client.on("message", (msg) => {
@@ -58,7 +72,7 @@ client.on("message", (msg) => {
 
 async function wimhof(guildId, msg) {
 	if (!isWorking(guildId)) {
-		switchGuildWorkingState(guildId, true);
+		const workingIndex = addGuildWorkingState(guildId, true);
 		msg.channel.send("hora de transcender");
 		const ytLink = "https://www.youtube.com/watch?v=tybOi4hjZFQ&t";
 		const voiceChannel = msg.member.voice.channel;
@@ -100,28 +114,12 @@ async function pomodoro(guildId, args, msg) {
 	} else if (!isWorking(guildId)) {
 		if (ytdl.validateURL(args[1])) {
 			pomodoroMsg(msg, workTime, restTime, rounds);
-
+			const ytLink = args[1];
 			await voiceChannel.join().then(async (connection) => {
-				switchGuildWorkingState(guildId, true);
+				const workingIndex = addGuildWorkingState(guildId, true) - 1;
 				await pomodoroLoop(
 					guildId,
-					connection,
-					msg.channel,
-					workTime,
-					restTime,
-					rounds,
-					args[1]
-				);
-				voiceChannel.leave();
-				switchGuildWorkingState(guildId, false);
-			});
-		} else {
-			pomodoroMsg(msg, workTime, restTime, rounds);
-
-			voiceChannel.join().then(async (connection) => {
-				switchGuildWorkingState(guildId, true);
-				await pomodoroLoop(
-					guildId,
+					workingIndex,
 					connection,
 					msg.channel,
 					workTime,
@@ -130,7 +128,25 @@ async function pomodoro(guildId, args, msg) {
 					ytLink
 				);
 				voiceChannel.leave();
-				switchGuildWorkingState(guildId, false);
+				switchGuildWorkingState(guildId, workingIndex, false);
+			});
+		} else {
+			pomodoroMsg(msg, workTime, restTime, rounds);
+
+			voiceChannel.join().then(async (connection) => {
+				const workingIndex = addGuildWorkingState(guildId, true) - 1;
+				await pomodoroLoop(
+					guildId,
+					workingIndex,
+					connection,
+					msg.channel,
+					workTime,
+					restTime,
+					rounds,
+					ytLink
+				);
+				voiceChannel.leave();
+				switchGuildWorkingState(guildId, workingIndex, false);
 			});
 		}
 	} else {
@@ -140,6 +156,7 @@ async function pomodoro(guildId, args, msg) {
 
 async function pomodoroLoop(
 	guildId,
+	workingIndex,
 	connection,
 	channel,
 	workTime,
@@ -149,13 +166,13 @@ async function pomodoroLoop(
 ) {
 	for (let i = 0; i < rounds; i++) {
 		// so pra n ficar rodando caso n esteja trabalhando
-		if (!isWorking(guildId)) break;
+		if (!isWorking(guildId, workingIndex)) break;
 		if (i !== 0) channel.send("começou o trabalho");
 
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(workTime);
 
-		if (!isWorking(guildId)) break;
+		if (!isWorking(guildId, workingIndex)) break;
 		if (i !== rounds - 1)
 			channel.send(`começou o descanso\nainda faltam ${rounds - i - 1} rounds`);
 		else channel.send(`sessão do pomodoro cabou`);
