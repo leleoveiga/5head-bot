@@ -155,6 +155,7 @@ async function pomodoroLoop(
 		await connection.play(await ytdl(ytLink), { type: "opus" });
 		await sleep(workTime);
 
+		if (!isWorking(guildId)) break;
 		if (i !== rounds - 1)
 			channel.send(`começou o descanso\nainda faltam ${rounds - i - 1} rounds`);
 		else channel.send(`sessão do pomodoro cabou`);
