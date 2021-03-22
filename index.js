@@ -47,7 +47,10 @@ function switchGuildWorkingState(guildId, state, workingIndex) {
 	workingIndex = workingIndex || guild.workingStateList.length - 1;
 	guild.workingStateList[workingIndex] = state;
 
-	console.log(guild, `mudou o estado na posição ${workingIndex}`);
+	console.log(
+		guild,
+		`mudou o estado na posição ${workingIndex} foi mudado pra ${state}`
+	);
 }
 
 function addGuildWorkingState(guildId, state) {
@@ -98,7 +101,7 @@ async function pomodoro(guildId, args, msg) {
 	const workTime = args[1] * 60000 || 1500000; // 25 minutes
 	const restTime = args[2] * 60000 || 300000; // 5 minutes
 	const rounds = args[3] || 4;
-	const ytLink = args[4] || "https://www.youtube.com/watch?v=dxi61ckiSnU";
+	const ytLink = args[4] || "https://www.youtube.com/watch?v=2ZIpFytCSVc";
 
 	if (args[1] === "sai") {
 		console.log("deve ter saído");
@@ -128,7 +131,7 @@ async function pomodoro(guildId, args, msg) {
 					ytLink
 				);
 				voiceChannel.leave();
-				switchGuildWorkingState(guildId, workingIndex, false);
+				switchGuildWorkingState(guildId, false, workingIndex);
 			});
 		} else {
 			pomodoroMsg(msg, workTime, restTime, rounds);
@@ -146,7 +149,7 @@ async function pomodoro(guildId, args, msg) {
 					ytLink
 				);
 				voiceChannel.leave();
-				switchGuildWorkingState(guildId, workingIndex, false);
+				switchGuildWorkingState(guildId, false, workingIndex);
 			});
 		}
 	} else {
