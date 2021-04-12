@@ -96,7 +96,6 @@ async function wimhof(guildId, msg) {
 async function pomodoro(guildId, args, msg) {
 	console.log(args);
 	const voiceChannel = msg.member.voice.channel;
-	const members = voiceChannel.members;
 
 	const workTime = args[1] * 60000 || 1500000; // 25 minutes
 	const restTime = args[2] * 60000 || 300000; // 5 minutes
@@ -167,25 +166,52 @@ async function pomodoroLoop(
 	rounds,
 	ytLink
 ) {
-	for (let i = 0; i < rounds; i++) {
-		// so pra n ficar rodando caso n esteja trabalhando
-		if (!isWorking(guildId, workingIndex)) break;
-		if (i !== 0) channel.send("começou o trabalho");
+	// for (let i = 0; i < rounds; i++) {
+	// 	// so pra n ficar rodando caso n esteja trabalhando
+	// 	if (!isWorking(guildId, workingIndex)) break;
+	// 	if (i !== 0) channel.send("começou o trabalho");
 
-		await connection.play(await ytdl(ytLink), { type: "opus" });
-		await sleep(workTime);
+	// 	await connection.play(await ytdl(ytLink), { type: "opus" });
+	// 	await sleep(workTime);
 
-		if (!isWorking(guildId, workingIndex)) break;
-		if (i !== rounds - 1)
-			channel.send(`começou o descanso\nainda faltam ${rounds - i - 1} rounds`);
-		else channel.send(`sessão do pomodoro cabou`);
+	// 	if (!isWorking(guildId, workingIndex)) break;
+	// 	if (i !== rounds - 1)
+	// 		channel.send(`começou o descanso\nainda faltam ${rounds - i - 1} rounds`);
+	// 	else channel.send(`sessão do pomodoro cabou`);
 
-		await connection.play(await ytdl(ytLink), { type: "opus" });
-		if (i !== rounds - 1) await sleep(restTime);
+	// 	await connection.play(await ytdl(ytLink), { type: "opus" });
+	// 	if (i !== rounds - 1) await sleep(restTime);
+	// 	else {
+	// 		//caso seja o último round, ele só descansa a duração do áudio
+	// 		const seconds = await videoLength(ytLink);
+	// 		await sleep(seconds * 2000);
+	// 	}
+	// }
+	for (let i = 0; i < rounds * 2; i++) {
+		// se for round de trabalhar
+		if (i % 2 == 0) {
+			if (!isWorking(guildId, workingIndex)) break;
+			if (i !== 0) channel.send("começou o trabalho");
+
+			await connection.play(await ytdl(ytLink), { type: "opus" });
+			await sleep(workTime);
+		}
+		// se for round de descanso
 		else {
-			//caso seja o último round, ele só descansa a duração do áudio
-			const seconds = await videoLength(ytLink);
-			await sleep(seconds * 2000);
+			if (!isWorking(guildId, workingIndex)) break;
+			if (i !== rounds - 1)
+				channel.send(
+					`começou o descanso\nainda faltam ${rounds - i - 1} rounds`
+				);
+			else channel.send(`sessão do pomodoro cabou`);
+
+			await connection.play(await ytdl(ytLink), { type: "opus" });
+			if (i !== rounds - 1) await sleep(restTime);
+			else {
+				//caso seja o último round, ele só descansa a duração do áudio
+				const seconds = await videoLength(ytLink);
+				await sleep(seconds * 3000);
+			}
 		}
 	}
 }
