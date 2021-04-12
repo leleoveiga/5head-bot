@@ -45,19 +45,21 @@ function isWorking(guildId, workingIndex) {
 function switchGuildWorkingState(guildId, state, workingIndex) {
 	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
 	workingIndex = workingIndex || guild.workingStateList.length - 1;
-	guild.workingStateList[workingIndex] = state;
+	if (guild.workingStateList.length != 0){
+		 guild.workingStateList[workingIndex] = state;
 
 	console.log(
 		guild,
 		`mudou o estado na posição ${workingIndex} foi mudado pra ${state}`
 	);
+	}
 }
 
 function addGuildWorkingState(guildId, state) {
 	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
-
-	console.log(guild, `foi adicionado um estado de trabalho nessa guild`);
-	return guild.workingStateList.push(state);
+	const index = guild.workingStateList.push(state);
+	console.log(guild, `o estado de trabalho ${state} foi adicionado nessa guild`);
+	return index
 }
 
 client.on("message", (msg) => {
@@ -75,7 +77,7 @@ client.on("message", (msg) => {
 
 async function wimhof(guildId, msg) {
 	if (!isWorking(guildId)) {
-		const workingIndex = addGuildWorkingState(guildId, true);
+		const workingIndex = addGuildWorkingState(guildId, true) - 1;
 		msg.channel.send("hora de transcender");
 		const ytLink = "https://www.youtube.com/watch?v=tybOi4hjZFQ&t";
 		const voiceChannel = msg.member.voice.channel;
@@ -83,11 +85,10 @@ async function wimhof(guildId, msg) {
 			connection.play(await ytdl(ytLink), {
 				type: "opus",
 			});
-
 			const seconds = await videoLength(ytLink);
 			await sleep(seconds * 1000);
 		});
-		switchGuildWorkingState(guildId, false);
+		switchGuildWorkingState(guildId, false, workingIndex);
 	} else {
 		pomodoroMsg(msg);
 	}
