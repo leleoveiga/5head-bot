@@ -218,9 +218,9 @@ async function pomodoroLoop(
 }
 
 async function videoLength(ytLink) {
-	await ytdl.getInfo(ytLink, (info) => {
-		return info.length_seconds;
-	});
+	const info = await ytdl.getInfo(ytLink)
+	// console.log(info.videoDetails.lengthSeconds)
+	return info.videoDetails.lengthSeconds
 }
 
 function pomodoroMsg(msg, workTime, restTime, rounds) {
