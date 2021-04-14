@@ -204,6 +204,7 @@ async function videoLength(ytLink) {
 }
 
 function pomodoroMsg(msg, workTime, restTime, rounds) {
+	if (rounds == 0) rounds = "∞"
 	if (!workTime) {
 		msg.channel.send(
 			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
