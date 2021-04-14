@@ -45,21 +45,24 @@ function isWorking(guildId, workingIndex) {
 function switchGuildWorkingState(guildId, state, workingIndex) {
 	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
 	workingIndex = workingIndex || guild.workingStateList.length - 1;
-	if (guild.workingStateList.length != 0){
-		 guild.workingStateList[workingIndex] = state;
+	if (guild.workingStateList.length != 0) {
+		guild.workingStateList[workingIndex] = state;
 
-	console.log(
-		guild,
-		`mudou o estado na posição ${workingIndex} foi mudado pra ${state}`
-	);
+		console.log(
+			guild,
+			`mudou o estado na posição ${workingIndex} foi mudado pra ${state}`
+		);
 	}
 }
 
 function addGuildWorkingState(guildId, state) {
 	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
 	const index = guild.workingStateList.push(state);
-	console.log(guild, `o estado de trabalho ${state} foi adicionado nessa guild`);
-	return index
+	console.log(
+		guild,
+		`o estado de trabalho ${state} foi adicionado nessa guild`
+	);
+	return index;
 }
 
 client.on("message", (msg) => {
@@ -167,7 +170,7 @@ async function pomodoroLoop(
 	rounds,
 	ytLink
 ) {
-	if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER
+	if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER;
 	for (let i = 0; i < rounds * 2; i++) {
 		// se for round de trabalhar
 		if (i % 2 == 0) {
@@ -198,13 +201,13 @@ async function pomodoroLoop(
 }
 
 async function videoLength(ytLink) {
-	const info = await ytdl.getInfo(ytLink)
+	const info = await ytdl.getInfo(ytLink);
 	// console.log(info.videoDetails.lengthSeconds)
-	return info.videoDetails.lengthSeconds
+	return info.videoDetails.lengthSeconds;
 }
 
 function pomodoroMsg(msg, workTime, restTime, rounds) {
-	if (rounds == 0) rounds = "∞"
+	if (rounds == 0) rounds = "∞";
 	if (!workTime) {
 		msg.channel.send(
 			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
