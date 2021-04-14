@@ -167,6 +167,7 @@ async function pomodoroLoop(
 	rounds,
 	ytLink
 ) {
+	if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER
 	for (let i = 0; i < rounds * 2; i++) {
 		// se for round de trabalhar
 		if (i % 2 == 0) {
