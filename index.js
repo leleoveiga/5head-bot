@@ -45,19 +45,24 @@ function isWorking(guildId, workingIndex) {
 function switchGuildWorkingState(guildId, state, workingIndex) {
 	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
 	workingIndex = workingIndex || guild.workingStateList.length - 1;
-	guild.workingStateList[workingIndex] = state;
+	if (guild.workingStateList.length != 0) {
+		guild.workingStateList[workingIndex] = state;
 
-	console.log(
-		guild,
-		`mudou o estado na posição ${workingIndex} foi mudado pra ${state}`
-	);
+		console.log(
+			guild,
+			`mudou o estado na posição ${workingIndex} foi mudado pra ${state}`
+		);
+	}
 }
 
 function addGuildWorkingState(guildId, state) {
 	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
-
-	console.log(guild, `foi adicionado um estado de trabalho nessa guild`);
-	return guild.workingStateList.push(state);
+	const index = guild.workingStateList.push(state);
+	console.log(
+		guild,
+		`o estado de trabalho ${state} foi adicionado nessa guild`
+	);
+	return index;
 }
 
 client.on("message", (msg) => {
@@ -75,7 +80,7 @@ client.on("message", (msg) => {
 
 async function wimhof(guildId, msg) {
 	if (!isWorking(guildId)) {
-		const workingIndex = addGuildWorkingState(guildId, true);
+		const workingIndex = addGuildWorkingState(guildId, true) - 1;
 		msg.channel.send("hora de transcender");
 		const ytLink = "https://www.youtube.com/watch?v=tybOi4hjZFQ&t";
 		const voiceChannel = msg.member.voice.channel;
@@ -83,11 +88,10 @@ async function wimhof(guildId, msg) {
 			connection.play(await ytdl(ytLink), {
 				type: "opus",
 			});
-
 			const seconds = await videoLength(ytLink);
 			await sleep(seconds * 1000);
 		});
-		switchGuildWorkingState(guildId, false);
+		switchGuildWorkingState(guildId, false, workingIndex);
 	} else {
 		pomodoroMsg(msg);
 	}
@@ -166,27 +170,7 @@ async function pomodoroLoop(
 	rounds,
 	ytLink
 ) {
-	// for (let i = 0; i < rounds; i++) {
-	// 	// so pra n ficar rodando caso n esteja trabalhando
-	// 	if (!isWorking(guildId, workingIndex)) break;
-	// 	if (i !== 0) channel.send("começou o trabalho");
-
-	// 	await connection.play(await ytdl(ytLink), { type: "opus" });
-	// 	await sleep(workTime);
-
-	// 	if (!isWorking(guildId, workingIndex)) break;
-	// 	if (i !== rounds - 1)
-	// 		channel.send(`começou o descanso\nainda faltam ${rounds - i - 1} rounds`);
-	// 	else channel.send(`sessão do pomodoro cabou`);
-
-	// 	await connection.play(await ytdl(ytLink), { type: "opus" });
-	// 	if (i !== rounds - 1) await sleep(restTime);
-	// 	else {
-	// 		//caso seja o último round, ele só descansa a duração do áudio
-	// 		const seconds = await videoLength(ytLink);
-	// 		await sleep(seconds * 2000);
-	// 	}
-	// }
+	if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER;
 	for (let i = 0; i < rounds * 2; i++) {
 		// se for round de trabalhar
 		if (i % 2 == 0) {
@@ -199,11 +183,11 @@ async function pomodoroLoop(
 		// se for round de descanso
 		else {
 			if (!isWorking(guildId, workingIndex)) break;
-			if (i !== rounds - 1)
-				channel.send(
-					`começou o descanso\nainda faltam ${rounds - i - 1} rounds`
-				);
-			else channel.send(`sessão do pomodoro cabou`);
+			if (i !== rounds - 1 && rounds != Number.MAX_SAFE_INTEGER) {
+				channel.send(`começou o descanso\nainda faltam ${rounds - (i/2)} rounds`);
+			} else if (rounds == Number.MAX_SAFE_INTEGER) {
+				channel.send(`começou o descanso...`);
+			} else channel.send(`sessão do pomodoro cabou`);
 
 			await connection.play(await ytdl(ytLink), { type: "opus" });
 			if (i !== rounds - 1) await sleep(restTime);
@@ -217,12 +201,13 @@ async function pomodoroLoop(
 }
 
 async function videoLength(ytLink) {
-	await ytdl.getInfo(ytLink, (info) => {
-		return info.length_seconds;
-	});
+	const info = await ytdl.getInfo(ytLink);
+	// console.log(info.videoDetails.lengthSeconds)
+	return info.videoDetails.lengthSeconds;
 }
 
 function pomodoroMsg(msg, workTime, restTime, rounds) {
+	if (rounds == 0) rounds = "∞";
 	if (!workTime) {
 		msg.channel.send(
 			"o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
