@@ -108,6 +108,7 @@ async function pomodoro(guildId, args, msg) {
 
 	if (args[1] === "sai") {
 		console.log("deve ter saído");
+		msg.channel.send("blz, saí");
 		voiceChannel.leave(); // bot continua no pomodoroLoop msm dps de sair. consertar dps
 		switchGuildWorkingState(guildId, false);
 	} else if (args[1] === "ajuda") {
