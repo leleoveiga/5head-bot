@@ -191,18 +191,16 @@ async function pomodoroLoop(
 		}
 		// se for round de descanso
 		else {
-			if (!isWorking(guildId, workingIndex)) break;
-			if (i !== rounds - 1 && rounds != Number.MAX_SAFE_INTEGER) {
-				channel.send(
-					`começou o descanso\nainda faltam ${--roundsCount} rounds`
-				);
-			} else if (rounds == Number.MAX_SAFE_INTEGER) {
-				channel.send(`começou o descanso...`);
-			} else channel.send(`sessão do pomodoro cabou`);
-
-			await connection.play(await ytdl(ytLink), { type: "opus" });
-			if (i !== rounds - 1) await sleep(restTime);
-			else {
+			if (i !== rounds * 2 - 1) {
+				await sleep(restTime);
+				if (rounds != Number.MAX_SAFE_INTEGER) {
+					channel.send(
+						`começou o descanso\nainda faltam ${--roundsCount} rounds`
+					);
+				} else if (rounds == Number.MAX_SAFE_INTEGER) {
+					channel.send(`começou o descanso...`);
+				}
+			} else {
 				//caso seja o último round, ele só descansa a duração do áudio
 				const seconds = await videoLength(ytLink);
 				await sleep(seconds * 3000);
