@@ -170,6 +170,7 @@ async function pomodoroLoop(
 	rounds,
 	ytLink
 ) {
+	let roundsCount = rounds;
 	if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER;
 	for (let i = 0; i < rounds * 2; i++) {
 		// se for round de trabalhar
@@ -184,7 +185,9 @@ async function pomodoroLoop(
 		else {
 			if (!isWorking(guildId, workingIndex)) break;
 			if (i !== rounds - 1 && rounds != Number.MAX_SAFE_INTEGER) {
-				channel.send(`começou o descanso\nainda faltam ${rounds - (i/2)} rounds`);
+				channel.send(
+					`começou o descanso\nainda faltam ${--roundsCount} rounds`
+				);
 			} else if (rounds == Number.MAX_SAFE_INTEGER) {
 				channel.send(`começou o descanso...`);
 			} else channel.send(`sessão do pomodoro cabou`);
