@@ -65,6 +65,13 @@ function addGuildWorkingState(guildId, state) {
 	return index;
 }
 
+function clearWorkingList(guildId) {
+	const guild = serversWorkers.find((guild) => guild.guildId === guildId);
+	guild.workingStateList = [];
+	console.log("limpando lista de trabalhos...");
+	console.log(guild.workingStateList);
+}
+
 client.on("message", (msg) => {
 	const guildId = msg.guild.id;
 	const args = msg.content.split(" ");
@@ -110,7 +117,7 @@ async function pomodoro(guildId, args, msg) {
 		console.log("deve ter saído");
 		msg.channel.send("blz, saí");
 		voiceChannel.leave(); // bot continua no pomodoroLoop msm dps de sair. consertar dps
-		switchGuildWorkingState(guildId, false);
+		clearWorkingList(guildId);
 	} else if (args[1] === "ajuda") {
 		msg.reply(
 			"só escrever: pomodoro x y z linkProAudio\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
@@ -174,12 +181,12 @@ async function pomodoroLoop(
 	let roundsCount = rounds;
 	if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER;
 	for (let i = 0; i < rounds * 2; i++) {
+		if (connection.status === 4 || !isWorking(guildId, workingIndex)) break;
+		await connection.play(await ytdl(ytLink), { type: "opus" });
+
 		// se for round de trabalhar
 		if (i % 2 == 0) {
-			if (!isWorking(guildId, workingIndex)) break;
 			if (i !== 0) channel.send("começou o trabalho");
-
-			await connection.play(await ytdl(ytLink), { type: "opus" });
 			await sleep(workTime);
 		}
 		// se for round de descanso
@@ -199,6 +206,7 @@ async function pomodoroLoop(
 				//caso seja o último round, ele só descansa a duração do áudio
 				const seconds = await videoLength(ytLink);
 				await sleep(seconds * 3000);
+				channel.send(`sessão do pomodoro cabou`);
 			}
 		}
 	}
