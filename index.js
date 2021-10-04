@@ -72,7 +72,7 @@ async function wimhof(guildId, msg) {
         msg.channel.send("hora de transcender");
         const ytLink = "https://www.youtube.com/watch?v=tybOi4hjZFQ&t";
         const voiceChannel = msg.member.voice.channel;
-        await voiceChannel.join().then(async (connection) => {
+        voiceChannel.join().then(async (connection) => {
             connection.play(await ytdl(ytLink), {
                 type: "opus",
             });
@@ -109,7 +109,7 @@ async function pomodoro(guildId, args, msg) {
             ytLink = args[1];
         }
         pomodoroMsg(msg, workTime, restTime, rounds);
-        await voiceChannel.join().then(async (connection) => {
+        voiceChannel.join().then(async (connection) => {
             switchGuildWorkingState(guildId, true);
             await pomodoroLoop(
                 guildId,
@@ -124,7 +124,22 @@ async function pomodoro(guildId, args, msg) {
             kickBot(voiceChannel, guildId);
         });
     }
-    else {
+    //TODO: refatorar connection
+    else if (args[1] === "fundo") {
+        const guild = serversWorkers.find((guild) => guild.guildId === guildId);
+        ytLink = args[2];
+        if (ytLink) {
+            voiceChannel.join().then(async (connection) => {
+                guild.backgroundSound = ytLink;
+                await connection.play(await ytdl(ytLink), { type: "opus" });
+            });
+        } else {
+            voiceChannel.join().then(async (connection) => {
+                guild.backgroundSound = "";
+                await connection.dispatcher.pause();
+            });
+        }
+    } else {
         pomodoroMsg(msg);
     }
 }
@@ -143,12 +158,22 @@ async function pomodoroLoop(
     rounds,
     ytLink
 ) {
+    const guild = serversWorkers.find((guild) => guild.guildId === guildId);
     let roundsCount = rounds;
     if (rounds === 0) rounds = Number.MAX_SAFE_INTEGER;
     for (let i = 0; i < rounds * 2; i++) {
         if (connection.status === 4 || !isWorking(guildId)) break;
 
-        await connection.play(await ytdl(ytLink), { type: "opus" });
+        connection
+            .play(await ytdl(ytLink), { type: "opus" })
+            .on("finish", async () => {
+                //TODO:fazer voltar ao ponto q tava
+                if (guild.backgroundSound)
+                    connection.play(await ytdl(guild.backgroundSound), {
+                        type: "opus",
+                    });
+            });
+
         // se for round de trabalhar
         if (i % 2 === 0) {
             channel.send("começou o trabalho");
