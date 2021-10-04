@@ -13,7 +13,7 @@ function addGuildsToList() {
         serversWorkers.push({
             guildId: guild.id,
             guildName: guild.name,
-            workingStateList: [],
+            workingState: false,
         });
     }
     console.log(serversWorkers);
@@ -33,47 +33,24 @@ client.on("guildCreate", (guild) => {
     serversWorkers.push({
         guildId: guild.id,
         guildName: guild.name,
-        workingStateList: [],
+        workingState: false,
     });
     console.log(serversWorkers);
 });
 
-function isWorking(guildId, workingIndex) {
+function isWorking(guildId) {
     const guild = serversWorkers.find((guild) => guild.guildId === guildId);
-    workingIndex = workingIndex || guild.workingStateList.length - 1;
-
-    console.log(guild, `o estado da posição ${workingIndex} foi consultado`);
-    return guild.workingStateList[workingIndex];
+    console.log(guild, `o estado em ${guild.guildName} foi consultado`);
+    return guild.workingState;
 }
 
-function switchGuildWorkingState(guildId, state, workingIndex) {
+function switchGuildWorkingState(guildId, state) {
     const guild = serversWorkers.find((guild) => guild.guildId === guildId);
-    workingIndex = workingIndex || guild.workingStateList.length - 1;
-    if (guild.workingStateList.length != 0) {
-        guild.workingStateList[workingIndex] = state;
-
-        console.log(
-            guild,
-            `mudou o estado na posição ${workingIndex} foi mudado pra ${state}`
-        );
-    }
-}
-
-function addGuildWorkingState(guildId, state) {
-    const guild = serversWorkers.find((guild) => guild.guildId === guildId);
-    const index = guild.workingStateList.push(state);
+    guild.workingState = state;
     console.log(
         guild,
-        `o estado de trabalho ${state} foi adicionado nessa guild`
+        `o estado foi mudado pra ${state} em ${guild.guildName}`
     );
-    return index;
-}
-
-function clearWorkingList(guildId) {
-    const guild = serversWorkers.find((guild) => guild.guildId === guildId);
-    guild.workingStateList = [];
-    console.log("limpando lista de trabalhos...");
-    console.log(guild.workingStateList);
 }
 
 client.on("message", (msg) => {
@@ -91,7 +68,7 @@ client.on("message", (msg) => {
 
 async function wimhof(guildId, msg) {
     if (!isWorking(guildId)) {
-        const workingIndex = addGuildWorkingState(guildId, true) - 1;
+        switchGuildWorkingState(guildId, true);
         msg.channel.send("hora de transcender");
         const ytLink = "https://www.youtube.com/watch?v=tybOi4hjZFQ&t";
         const voiceChannel = msg.member.voice.channel;
@@ -102,7 +79,7 @@ async function wimhof(guildId, msg) {
             const seconds = await videoLength(ytLink);
             await sleep(seconds * 1000);
         });
-        switchGuildWorkingState(guildId, false, workingIndex);
+        switchGuildWorkingState(guildId, false);
     } else {
         pomodoroMsg(msg);
     }
@@ -115,16 +92,15 @@ async function pomodoro(guildId, args, msg) {
     const workTime = args[1] * 60000 || 1500000; // 25 minutes
     const restTime = args[2] * 60000 || 300000; // 5 minutes
     const rounds = args[3] || 0;
-    const ytLink = args[4] || "https://www.youtube.com/watch?v=2ZIpFytCSVc";
+    let ytLink = args[4] || "https://www.youtube.com/watch?v=2ZIpFytCSVc";
 
     if (args[1] === "sai") {
         msg.channel.send("blz, saí");
-        voiceChannel.leave(); // bot continua no pomodoroLoop msm dps de sair. consertar dps
-        clearWorkingList(guildId);
+        kickBot(voiceChannel, guildId);
     } else if (args[1] === "ajuda") {
         msg.reply(
             "só escrever: pomodoro x y z linkProAudio\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
-                "\n ou vc pode só passar os x y z" +
+                "\n ou vc pode só passar os x y z (z, o número de rounds, é opcional)" +
                 "\n ou vc pode só passar o linkProAudio" +
                 "\n ou vc pode só escrever pomodoro"
         );
@@ -134,10 +110,9 @@ async function pomodoro(guildId, args, msg) {
         }
         pomodoroMsg(msg, workTime, restTime, rounds);
         await voiceChannel.join().then(async (connection) => {
-            const workingIndex = addGuildWorkingState(guildId, true) - 1;
+            switchGuildWorkingState(guildId, true);
             await pomodoroLoop(
                 guildId,
-                workingIndex,
                 connection,
                 msg.channel,
                 workTime,
@@ -145,19 +120,22 @@ async function pomodoro(guildId, args, msg) {
                 rounds,
                 ytLink
             );
-            voiceChannel.leave();
-            channel.send(`sessão do pomodoro cabou`);
-            console.log("deve ter saído dps do loop");
-            switchGuildWorkingState(guildId, false, workingIndex);
+            msg.channel.send(`sessão do pomodoro cabou`);
+            kickBot(voiceChannel, guildId);
         });
-    } else {
+    }
+    else {
         pomodoroMsg(msg);
     }
 }
 
+function kickBot(voiceChannel, guildId) {
+    voiceChannel.leave();
+    switchGuildWorkingState(guildId, false);
+}
+
 async function pomodoroLoop(
     guildId,
-    workingIndex,
     connection,
     channel,
     workTime,
@@ -166,44 +144,37 @@ async function pomodoroLoop(
     ytLink
 ) {
     let roundsCount = rounds;
-    if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER;
+    if (rounds === 0) rounds = Number.MAX_SAFE_INTEGER;
     for (let i = 0; i < rounds * 2; i++) {
-        if (connection.status === 4 || !isWorking(guildId, workingIndex)) break;
+        if (connection.status === 4 || !isWorking(guildId)) break;
 
         await connection.play(await ytdl(ytLink), { type: "opus" });
         // se for round de trabalhar
-        if (i % 2 == 0) {
+        if (i % 2 === 0) {
             channel.send("começou o trabalho");
             await sleep(workTime);
         }
-        // se for round de descanso
-        else {
-            if (i < rounds * 2 - 1) {
-                if (rounds != Number.MAX_SAFE_INTEGER) {
-                    channel.send(
-                        `começou o descanso\nainda faltam ${--roundsCount} rounds`
-                    );
-                } else if (rounds == Number.MAX_SAFE_INTEGER) {
-                    channel.send(`começou o descanso...`);
-                }
-                await sleep(restTime);
+        // se for round de descanso e n for o ultimo round
+        else if (roundsCount - 1 != 0) {
+            if (rounds !== Number.MAX_SAFE_INTEGER) {
+                channel.send(
+                    `começou o descanso\nainda faltam ${--roundsCount} rounds`
+                );
             } else {
-                //caso seja o último round, ele só descansa a duração do áudio
-                const seconds = await videoLength(ytLink);
-                await sleep(seconds * 3000);
+                channel.send(`começou o descanso...`);
             }
+            await sleep(restTime);
         }
     }
 }
 
 async function videoLength(ytLink) {
     const info = await ytdl.getInfo(ytLink);
-    // console.log(info.videoDetails.lengthSeconds)
     return info.videoDetails.lengthSeconds;
 }
 
 function pomodoroMsg(msg, workTime, restTime, rounds) {
-    if (rounds == 0) rounds = "∞";
+    if (rounds === 0) rounds = "∞";
     if (!workTime) {
         msg.channel.send(
             "o bot já está tocando algo! digite 'pomodoro sai' pra dar outro comando à ele"
