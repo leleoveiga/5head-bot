@@ -114,11 +114,10 @@ async function pomodoro(guildId, args, msg) {
 
     const workTime = args[1] * 60000 || 1500000; // 25 minutes
     const restTime = args[2] * 60000 || 300000; // 5 minutes
-    const rounds = args[3] || 4;
+    const rounds = args[3] || 0;
     const ytLink = args[4] || "https://www.youtube.com/watch?v=2ZIpFytCSVc";
 
     if (args[1] === "sai") {
-        console.log("deve ter saído");
         msg.channel.send("blz, saí");
         voiceChannel.leave(); // bot continua no pomodoroLoop msm dps de sair. consertar dps
         clearWorkingList(guildId);
@@ -131,42 +130,26 @@ async function pomodoro(guildId, args, msg) {
         );
     } else if (!isWorking(guildId)) {
         if (ytdl.validateURL(args[1])) {
-            pomodoroMsg(msg, workTime, restTime, rounds);
-            const ytLink = args[1];
-            await voiceChannel.join().then(async (connection) => {
-                const workingIndex = addGuildWorkingState(guildId, true) - 1;
-                await pomodoroLoop(
-                    guildId,
-                    workingIndex,
-                    connection,
-                    msg.channel,
-                    workTime,
-                    restTime,
-                    rounds,
-                    ytLink
-                );
-                voiceChannel.leave();
-                switchGuildWorkingState(guildId, false, workingIndex);
-            });
-        } else {
-            pomodoroMsg(msg, workTime, restTime, rounds);
-
-            voiceChannel.join().then(async (connection) => {
-                const workingIndex = addGuildWorkingState(guildId, true) - 1;
-                await pomodoroLoop(
-                    guildId,
-                    workingIndex,
-                    connection,
-                    msg.channel,
-                    workTime,
-                    restTime,
-                    rounds,
-                    ytLink
-                );
-                voiceChannel.leave();
-                switchGuildWorkingState(guildId, false, workingIndex);
-            });
+            ytLink = args[1];
         }
+        pomodoroMsg(msg, workTime, restTime, rounds);
+        await voiceChannel.join().then(async (connection) => {
+            const workingIndex = addGuildWorkingState(guildId, true) - 1;
+            await pomodoroLoop(
+                guildId,
+                workingIndex,
+                connection,
+                msg.channel,
+                workTime,
+                restTime,
+                rounds,
+                ytLink
+            );
+            voiceChannel.leave();
+            channel.send(`sessão do pomodoro cabou`);
+            console.log("deve ter saído dps do loop");
+            switchGuildWorkingState(guildId, false, workingIndex);
+        });
     } else {
         pomodoroMsg(msg);
     }
@@ -186,8 +169,8 @@ async function pomodoroLoop(
     if (rounds == 0) rounds = Number.MAX_SAFE_INTEGER;
     for (let i = 0; i < rounds * 2; i++) {
         if (connection.status === 4 || !isWorking(guildId, workingIndex)) break;
-        await connection.play(await ytdl(ytLink), { type: "opus" });
 
+        await connection.play(await ytdl(ytLink), { type: "opus" });
         // se for round de trabalhar
         if (i % 2 == 0) {
             channel.send("começou o trabalho");
@@ -208,7 +191,6 @@ async function pomodoroLoop(
                 //caso seja o último round, ele só descansa a duração do áudio
                 const seconds = await videoLength(ytLink);
                 await sleep(seconds * 3000);
-                channel.send(`sessão do pomodoro cabou`);
             }
         }
     }
