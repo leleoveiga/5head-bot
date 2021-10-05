@@ -102,7 +102,8 @@ async function pomodoro(guildId, args, msg) {
             "só escrever: pomodoro x y z linkProAudio\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
                 "\n ou vc pode só passar os x y z (z, o número de rounds, é opcional)" +
                 "\n ou vc pode só passar o linkProAudio" +
-                "\n ou vc pode só escrever pomodoro"
+                "\n ou vc pode só escrever pomodoro" +
+                "\n tbm tem a opção de vc botar som de fundo, pra isso digite: pomodoro fundo linkProVideo"
         );
     } else if (!isWorking(guildId)) {
         if (ytdl.validateURL(args[1])) {
@@ -164,6 +165,7 @@ async function pomodoroLoop(
     for (let i = 0; i < rounds * 2; i++) {
         if (connection.status === 4 || !isWorking(guildId)) break;
 
+        //TODO: refatorar para um método q recebe connection, testar on finish return
         connection
             .play(await ytdl(ytLink), { type: "opus" })
             .on("finish", async () => {
