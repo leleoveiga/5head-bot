@@ -2,8 +2,9 @@ const discord = require("discord.js");
 const ytdl = require("ytdl-core-discord");
 require("dotenv/config");
 const client = new discord.Client();
-
 const token = process.env.TOKEN;
+//TODO: refazer pra usar @discord/voice
+//TODO: command handler
 
 const serversWorkers = [];
 
@@ -99,11 +100,11 @@ async function pomodoro(guildId, args, msg) {
         kickBot(voiceChannel, guildId);
     } else if (args[1] === "ajuda") {
         msg.reply(
-            "só escrever: pomodoro x y z linkProAudio\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
-                "\n ou vc pode só passar os x y z (z, o número de rounds, é opcional)" +
-                "\n ou vc pode só passar o linkProAudio" +
-                "\n ou vc pode só escrever pomodoro" +
-                "\n tbm tem a opção de vc botar som de fundo, pra isso digite: pomodoro fundo linkProVideo"
+            "só escrever: ```pomodoro x y z linkProAudio```\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
+                "\n ou ```pomodoro x y z``` (z, o número de rounds, é opcional)" +
+                "\n ou vc pode só passar o ```pomodoro linkProAudio```" +
+                "\n ou vc pode só escrever ```pomodoro```" +
+                "\n tbm tem a opção de vc botar som de fundo, pra isso digite: ```pomodoro fundo linkProVideo```"
         );
     } else if (!isWorking(guildId)) {
         if (ytdl.validateURL(args[1])) {
@@ -124,9 +125,7 @@ async function pomodoro(guildId, args, msg) {
             msg.channel.send(`sessão do pomodoro cabou`);
             kickBot(voiceChannel, guildId);
         });
-    }
-    //TODO: refatorar connection
-    else if (args[1] === "fundo") {
+    } else if (args[1] === "fundo") {
         const guild = serversWorkers.find((guild) => guild.guildId === guildId);
         ytLink = args[2];
         if (ytLink) {
