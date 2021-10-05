@@ -100,11 +100,11 @@ async function pomodoro(guildId, args, msg) {
         kickBot(voiceChannel, guildId);
     } else if (args[1] === "ajuda") {
         msg.reply(
-            "só escrever: ```pomodoro x y z linkProAudio```\n onde x: minutos trabalhando\n y: minutos descansando \n z: rounds " +
-                "\n ou ```pomodoro x y z``` (z, o número de rounds, é opcional)" +
-                "\n ou vc pode só passar o ```pomodoro linkProAudio```" +
-                "\n ou vc pode só escrever ```pomodoro```" +
-                "\n tbm tem a opção de vc botar som de fundo, pra isso digite: ```pomodoro fundo linkProVideo```"
+            "só escrever: `pomodoro x y z linkProAudio`\n onde:\n x: minutos trabalhando\n y: minutos descansando \n z: rounds (0 = infinito) " +
+                "\n ou `pomodoro x y z` (z é opcional)" +
+                "\n ou `pomodoro linkProAudio`" +
+                "\n ou vc pode só escrever `pomodoro`" +
+                "\n tbm tem a opção de vc botar som de fundo, pra isso digite: `pomodoro fundo linkProVideo`"
         );
     } else if (!isWorking(guildId)) {
         if (ytdl.validateURL(args[1])) {
