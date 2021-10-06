@@ -5,6 +5,7 @@ const client = new discord.Client();
 const token = process.env.TOKEN;
 //TODO: refazer pra usar @discord/voice
 //TODO: command handler
+//TODO: add pause/resume
 
 const serversWorkers = [];
 
@@ -104,7 +105,8 @@ async function pomodoro(guildId, args, msg) {
                 "\n ou `pomodoro x y z` (z é opcional)" +
                 "\n ou `pomodoro linkProAudio`" +
                 "\n ou vc pode só escrever `pomodoro`" +
-                "\n tbm tem a opção de vc botar som de fundo, pra isso digite: `pomodoro fundo linkProVideo`"
+                "\n tbm tem a opção de vc botar som de fundo, pra isso digite: `pomodoro fundo linkProVideo`" +
+                "\n e pra tirar o fundo, digite: `pomodoro fundo`"
         );
     } else if (!isWorking(guildId)) {
         if (ytdl.validateURL(args[1])) {
